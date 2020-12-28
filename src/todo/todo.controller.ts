@@ -2,65 +2,73 @@ import {Body, Controller, Delete , Get, Param, Patch, Post, Put} from '@nestjs/c
 import { Todo } from './models/todo.model';
 import { CreateTodoDto} from './dto/create-todo.dto';
 import { UpdateTodoDto} from './dto/update-todo.dto';
+import {FindTodoDto} from './dto/find-todo.dto';
+import { TodoService } from './todo.service';
+import { TodoEntity } from './entities/todo.entity';
 
 @Controller('todo')
 export class TodoController{
     private todos: Todo[] = [];
-    constructor() {
-        const todo = new Todo();
-        todo.name = 'Sport';
-        todo.description = 'Faire du sport';
-        this.todos = [
-        todo
-        ]
-    }
-    private findTodoByID(id: string) : Todo{
-        const todo = this.todos.find(
-            (actualTodo: Todo) => actualTodo.id ===id
-        );
-        if (todo)
-        {
-        return todo;
-      }
-    }
-  
+
+    constructor(
+        private todoService: TodoService
+    ){}
+
     @Get('')
-    getTodos() {
-      return this.todos;
+    async getTodos(): Promise<TodoEntity[]>
+    {
+        return await this.todoService.getTodos();
     }
+
+    @Get('findStatusDescription')
+    async findByStatusAndDescription(
+        @Body() statusAndDescription: FindTodoDto
+    ){
+        return await this.todoService.findByStatusAndDescription(statusAndDescription);
+    }
+
 
     @Get(':id')
-    getTodosById(@Param('id') id:string) {
-      return this.findTodoByID(id);
+    async getTodoById(
+        @Param('id') id: number
+    ): Promise<TodoEntity>
+    {
+        return await this.todoService.getTodoById(id);
+    }
+    
+
+    @Post() 
+    async addTodo(
+        @Body() todo: CreateTodoDto,
+    ): Promise<TodoEntity>{
+        return await this.todoService.addTodo(todo);
     }
 
 
-    @Delete(":id")
-    deleteTodos(@Param('id') id:string){
-        const todo = this.findTodoByID(id);
-        this.todos.splice(this.todos.indexOf(todo),1);
+    @Put(':id')
+    async updateTodo(
+        @Param('id') id: string,
+        @Body() newTodo: UpdateTodoDto
+        ): Promise<TodoEntity> 
+    {
+        return await this.todoService.updateTodo(id,newTodo);
     }
 
-    @Post("")
-    addTodos(@Body() newTodo: CreateTodoDto){
-        const{name, description}= newTodo;
-        const todo = new Todo();
-        todo.name = name;
-        todo.description = description;
-        this.todos.push(todo);
-        return todo;
 
+    @Delete(':id')
+    async deleteTodo(
+        @Param('id') id: number
+    )
+    {
+        return await this.todoService.deleteTodo(id);
     }
 
-    @Put('id')
-    updateTodo(
-        @Body() newTodo : Partial<Todo>, 
-        @Param('id') id: string){
-            const{name, description, status}= newTodo;
-            const todo = this.findTodoByID(id);
-            todo.name = name? name: todo.name;
-            todo.description = description? description: todo.description;
-            todo.status = status? status: todo.status;
-            return todo;
+    @Get('restore/:id')
+    async restoreTodoById(
+        @Param('id') id: number
+    )
+    {
+        return await this.todoService.restoreTodo(id);
     }
+
 }
