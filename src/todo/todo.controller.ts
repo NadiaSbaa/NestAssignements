@@ -20,7 +20,7 @@ export class TodoController{
         return await this.todoService.getTodos();
     }
 
-    @Get('findStatusDescription')
+    @Get('findByStatusDescription')
     async findByStatusAndDescription(
         @Body() statusAndDescription: FindTodoDto
     ){
